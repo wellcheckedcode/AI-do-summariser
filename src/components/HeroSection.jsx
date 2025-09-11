@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Play, Scan, Languages, Brain, FileText, Zap } from "lucide-react";
-import metroHero from "@/assets/metro-hero.jpg";
+import heroBg from "@/assets/hero-bg.png";
 
 const HeroSection = () => {
   const navigate = useNavigate();
@@ -9,14 +9,14 @@ const HeroSection = () => {
     <section
       className="relative min-h-screen flex items-center bg-gradient-subtle overflow-hidden"
       style={{
-        backgroundImage: `url(${metroHero})`,
+        backgroundImage: `url(${heroBg})`,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         backgroundRepeat: 'no-repeat'
       }}
     >
       {/* Overlay for readability */}
-      <div className="absolute inset-0 bg-black/30" />
+      <div className="absolute inset-0 bg-black/70" />
       {/* Floating background elements */}
       <div className="absolute top-20 left-10 w-72 h-72 bg-primary/5 rounded-full blur-3xl animate-float"></div>
       <div className="absolute bottom-20 right-10 w-96 h-96 bg-secondary/5 rounded-full blur-3xl animate-float" style={{animationDelay: '2s'}}></div>
@@ -27,7 +27,7 @@ const HeroSection = () => {
           {/* Left Content */}
           <div className="text-center lg:text-left space-y-8">
             <div className="space-y-4">
-              <div className="inline-flex items-center px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium backdrop-blur-sm">
+              <div className="inline-flex items-center px-4 py-2 rounded-full bg-white/100 text-primary text-sm font-medium backdrop-blur-sm">
                   Advanced Document Management
               </div>
               
@@ -70,7 +70,7 @@ const HeroSection = () => {
                   <Scan className="h-6 w-6 text-primary" />
                 </div>
                 <h3 className="font-semibold text-sm mb-1">Smart OCR</h3>
-                <p className="text-xs text-muted-foreground">Extract text from any document format</p>
+                <p className="text-sm text-muted-foreground">Extract text from any document format</p>
               </div>
               
               <div className="text-center p-4 rounded-xl glass-effect animate-scale-hover" style={{animationDelay: '0.1s'}}>
@@ -78,7 +78,7 @@ const HeroSection = () => {
                   <Languages className="h-6 w-6 text-secondary" />
                 </div>
                 <h3 className="font-semibold text-sm mb-1">Auto Translate</h3>
-                <p className="text-xs text-muted-foreground">English & Malayalam support</p>
+                <p className="text-sm text-muted-foreground">English & Malayalam support</p>
               </div>
               
               <div className="text-center p-4 rounded-xl glass-effect animate-scale-hover" style={{animationDelay: '0.2s'}}>
@@ -86,7 +86,7 @@ const HeroSection = () => {
                   <Brain className="h-6 w-6 text-accent" />
                 </div>
                 <h3 className="font-semibold text-sm mb-1">AI Summary</h3>
-                <p className="text-xs text-muted-foreground">Instant intelligent insights</p>
+                <p className="text-sm text-muted-foreground">Instant intelligent insights</p>
               </div>
             </div>
           </div>
