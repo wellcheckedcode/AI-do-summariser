@@ -53,21 +53,14 @@ const HeroSection = () => {
                 Get Started
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                className="glass-effect hover:bg-primary/5 animate-scale-hover text-lg px-8 py-6"
-              >
-                Watch Demo
-                <Play className="ml-2 h-5 w-5" />
-              </Button>
+                            
             </div>
 
             {/* Feature highlights */}
             <div className="grid grid-rows-3 gap-4 pt-8">
               <div className="text-center p-4 rounded-xl glass-effect animate-scale-hover">
                 <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Scan className="h-6 w-6 text-primary" />
+                  <Scan className="h-6 w-6 text-primary"/>
                 </div>
                 <h3 className="font-semibold text-sm mb-1">Smart OCR</h3>
                 <p className="text-xs text-muted-foreground">Extract text from any document format</p>
