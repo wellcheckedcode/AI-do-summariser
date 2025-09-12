@@ -187,10 +187,70 @@ const Documents = () => {
     return text.trim();
   };
 
-  // Other functions like onView, blobToDataUrl, onSummarize remain the same
-  const onView = async (path) => { /* ... */ };
-  const blobToDataUrl = async (blob) => { /* ... */ };
-  const onSummarize = async (item) => { /* ... */ };
+  // View a document via public or signed URL
+  const onView = async (path) => {
+    try {
+      const url = await getViewUrl(path);
+      const win = window.open(url, "_blank", "noopener,noreferrer");
+      if (win) win.opener = null;
+    } catch (e) {
+      setError(e?.message || "Failed to open document.");
+    }
+  };
+
+  // Convert Blob to DataURL (base64) string
+  const blobToDataUrl = async (blob) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result);
+      reader.onerror = reject;
+      reader.readAsDataURL(blob);
+    });
+  };
+
+  // Generate or refresh AI summary for a document
+  const onSummarize = async (item) => {
+    const rowId = item.id ?? item.path;
+    setSummarizing((prev) => ({ ...prev, [rowId]: true }));
+    setError("");
+
+    try {
+      // 1) Get a viewable URL for the file from storage
+      const url = await getViewUrl(item.path);
+
+      // 2) Fetch the file as Blob
+      const res = await fetch(url);
+      if (!res.ok) throw new Error("Failed to download file for analysis.");
+      const blob = await res.blob();
+
+      // 3) Convert to base64 data URL
+      const dataUrl = await blobToDataUrl(blob);
+
+      // 4) Call backend to analyze
+      const result = await apiService.analyzeDocument(dataUrl, item.name || "document");
+
+      const newSummary = result?.summary || "";
+      const newDepartment = result?.department || item.department || null;
+
+      // 5) Persist to Supabase
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { error: upErr } = await supabase
+        .from("documents")
+        .update({ ai_summary: newSummary, department: newDepartment })
+        .eq("id", item.id);
+      if (upErr) throw upErr;
+
+      // 6) Update UI state
+      setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, ai_summary: newSummary, department: newDepartment } : it)));
+
+      // 7) Show dialog with the latest summary
+      setActiveSummary({ title: item.name, summary: newSummary });
+    } catch (e) {
+      setError(e?.message || "Failed to summarize document.");
+    } finally {
+      setSummarizing((prev) => ({ ...prev, [rowId]: false }));
+    }
+  };
 
   const renderContent = () => {
     if (loading) {
@@ -293,8 +353,9 @@ const Documents = () => {
             <FileText className="h-6 w-6 text-primary" />
         </div>
         <div>
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Your Documents</h1>
+            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Your Documents</h1>
             <p className="text-sm sm:text-base text-muted-foreground mt-1">View, manage, and analyze your uploaded files.</p>
+            <br />
         </div>
       </div>
 
@@ -312,7 +373,7 @@ const Documents = () => {
           </DialogHeader>
           {activeSummary && (
             <div className="space-y-4 max-h-[70vh] overflow-y-auto pr-2">
-              <div className="text-sm font-bold break-words border-b pb-2">
+              <div className="text-sm font-medium break-words border-b pb-2">
                 File: {activeSummary.title}
               </div>
               <div className="text-base leading-relaxed text-foreground whitespace-pre-wrap break-words">

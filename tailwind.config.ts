@@ -1,4 +1,6 @@
 import type { Config } from "tailwindcss";
+import typography from "@tailwindcss/typography";
+import animate from "tailwindcss-animate";
 
 export default {
   darkMode: ["class"],
@@ -65,27 +67,32 @@ export default {
       },
       keyframes: {
         "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
+          from: { height: "0" },
+          to: { height: "var(--radix-accordion-content-height)" },
         },
         "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
+          from: { height: "var(--radix-accordion-content-height)" },
+          to: { height: "0" },
+        },
+        // --- ADD THIS NEW KEYFRAME ---
+        fadeInUp: {
+          "0%": {
+            opacity: "0",
+            transform: "translateY(20px)",
           },
-          to: {
-            height: "0",
+          "100%": {
+            opacity: "1",
+            transform: "translateY(0)",
           },
         },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        // --- AND ADD THIS NEW ANIMATION UTILITY ---
+        fadeInUp: "fadeInUp 0.5s ease-out forwards",
       },
     },
   },
-  plugins: [require("tailwindcss-animate")],
+  plugins: [animate, typography],
 } satisfies Config;

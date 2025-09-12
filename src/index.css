@@ -2,6 +2,8 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Design system and custom utility classes. */
+
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
 All colors MUST be HSL.
 */
@@ -106,15 +108,15 @@ All colors MUST be HSL.
 
 @layer base {
   * {
-    @apply border-border;
+    border-color: hsl(var(--border));
   }
 
   body {
-    @apply bg-background text-foreground;
+    background-color: hsl(var(--background));
+    color: hsl(var(--foreground));
     font-feature-settings: 'rlig' 1, 'calt' 1;
   }
 }
-
 @layer utilities {
   .gradient-hero {
     background: var(--gradient-hero);
@@ -157,6 +159,20 @@ All colors MUST be HSL.
   .animate-scale-hover:hover {
     transform: scale(1.02);
   }
+
+  /* Header-specific animations */
+  .animate-fade-in-up {
+    animation: fadeInUp 1s ease-out;
+  }
+
+  .animate-text-glow {
+    animation: textGlow 3s ease-in-out infinite alternate;
+  }
+
+  /* Enhanced shadow utilities */
+  .shadow-3xl {
+    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
+  }
 }
 
 @keyframes float {
@@ -167,4 +183,24 @@ All colors MUST be HSL.
 @keyframes pulse-soft {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.8; }
+}
+
+@keyframes fadeInUp {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes textGlow {
+  0% {
+    text-shadow: 0 0 20px hsl(209 87% 49% / 0.3);
+  }
+  100% {
+    text-shadow: 0 0 30px hsl(209 87% 49% / 0.6), 0 0 40px hsl(22 93% 55% / 0.3);
+  }
 }
