@@ -106,74 +106,6 @@ All colors MUST be HSL.
   }
 }
 
-@layer base {
-  * {
-    border-color: hsl(var(--border));
-  }
-
-  body {
-    background-color: hsl(var(--background));
-    color: hsl(var(--foreground));
-    font-feature-settings: 'rlig' 1, 'calt' 1;
-  }
-}
-@layer utilities {
-  .gradient-hero {
-    background: var(--gradient-hero);
-  }
-  
-  .gradient-card {
-    background: var(--gradient-card);
-  }
-  
-  .shadow-metro {
-    box-shadow: var(--shadow-metro);
-  }
-  
-  .shadow-card {
-    box-shadow: var(--shadow-card);
-  }
-  
-  .shadow-hover {
-    box-shadow: var(--shadow-hover);
-  }
-  
-  .glass-effect {
-    background: var(--glass-bg);
-    backdrop-filter: blur(10px);
-    border: 1px solid var(--glass-border);
-  }
-
-  .animate-float {
-    animation: float 6s ease-in-out infinite;
-  }
-
-  .animate-pulse-soft {
-    animation: pulse-soft 3s ease-in-out infinite;
-  }
-
-  .animate-scale-hover {
-    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-  
-  .animate-scale-hover:hover {
-    transform: scale(1.02);
-  }
-
-  /* Header-specific animations */
-  .animate-fade-in-up {
-    animation: fadeInUp 1s ease-out;
-  }
-
-  .animate-text-glow {
-    animation: textGlow 3s ease-in-out infinite alternate;
-  }
-
-  /* Enhanced shadow utilities */
-  .shadow-3xl {
-    box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.25);
-  }
-}
 
 @keyframes float {
   0%, 100% { transform: translateY(0px); }
@@ -206,7 +138,3 @@ All colors MUST be HSL.
 }
 
 /* Force header background color */
-header {
-  background: linear-gradient(to right, #3b82f6, #ec4899, #3b82f6) !important;
-  background-color: #3b82f6 !important;
-}

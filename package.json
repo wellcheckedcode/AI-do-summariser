@@ -9,7 +9,10 @@
     "dev": "powershell -NoProfile -Command \"Start-Process powershell -ArgumentList '-NoProfile -Command cd frontend; npm run dev'; Start-Process powershell -ArgumentList '-NoProfile -Command cd backend; python app.py'\"",
     "build": "cd frontend && npm run build",
     "start:frontend": "cd frontend && npm run preview"
+  },
+  "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "postcss": "^8.5.6",
+    "tailwindcss": "^3.4.17"
   }
 }
-
-
