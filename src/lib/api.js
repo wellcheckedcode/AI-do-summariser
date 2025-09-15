@@ -28,6 +28,29 @@ export const apiService = {
     }
   },
 
+  // Gmail: get OAuth URL
+  async getGmailAuthUrl(userId) {
+    const url = new URL(`${API_BASE_URL}/gmail/auth-url`);
+    url.searchParams.set('user_id', userId);
+    const res = await fetch(url.toString());
+    if (!res.ok) throw new Error('Failed to get Gmail auth URL');
+    return res.json();
+  },
+
+  // Gmail: import attachments after OAuth callback
+  async importFromGmail(state, { query = 'has:attachment newer_than:30d', maxResults = 25 } = {}) {
+    const res = await fetch(`${API_BASE_URL}/gmail/import`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ state, query, max_results: maxResults }),
+    });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.error || 'Gmail import failed');
+    }
+    return res.json();
+  },
+
   // Health check
   async healthCheck() {
     try {

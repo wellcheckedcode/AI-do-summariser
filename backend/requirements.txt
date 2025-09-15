@@ -5,3 +5,14 @@ python-dotenv==1.0.0
 Pillow>=11.0.0
 pypdf==3.17.4
 
+# Gmail API + OAuth
+google-api-python-client==2.136.0
+google-auth==2.35.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+
+# HTTP client
+requests==2.32.3
+
+pdf2image==1.16.3
+

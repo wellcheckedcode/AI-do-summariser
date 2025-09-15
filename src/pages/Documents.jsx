@@ -88,6 +88,64 @@ const ErrorState = ({ message }) => (
 );
 
 
+const ImportFromGmail = ({ user, onImported }) => {
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  const handleImport = async () => {
+    try {
+      setBusy(true);
+      setError("");
+      if (!user) throw new Error("You must be logged in.");
+
+      // 1) Get OAuth URL
+      const { auth_url, state } = await apiService.getGmailAuthUrl(user.id);
+
+      // 2) Open popup for Google OAuth
+      const w = 600, h = 700;
+      const left = window.screenX + (window.outerWidth - w) / 2;
+      const top = window.screenY + (window.outerHeight - h) / 2;
+      const popup = window.open(auth_url, "gmail_oauth", `width=${w},height=${h},left=${left},top=${top}`);
+
+      // 3) Poll until popup is closed (after callback closes it)
+      await new Promise((resolve, reject) => {
+        const timer = setInterval(async () => {
+          if (!popup || popup.closed) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 700);
+        setTimeout(() => { try { clearInterval(timer); } catch {} resolve(); }, 120000); // safety timeout
+      });
+
+      // 4) The backend stored credentials under a state key; we can't read that from here.
+      // For simplicity in this demo, we'll import using the last state created for this user.
+      // In production, you should persist a mapping of user->state server-side.
+      // 4) Tell backend to import attachments with the known OAuth state - focus on unread messages
+      const importRes = await apiService.importFromGmail(state, {
+        query: 'is:unread has:attachment newer_than:30d',
+        maxResults: 50
+      });
+      console.log(importRes);
+      onImported?.();
+    } catch (e) {
+      setError(e?.message || "Gmail import failed.");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="flex items-center gap-2">
+      <Button size="sm" variant="secondary" onClick={handleImport} disabled={busy || !user}>
+        {busy ? (<Loader2 className="mr-2 h-4 w-4 animate-spin" />) : (<Inbox className="mr-2 h-4 w-4" />)}
+        {busy ? "Importing..." : "Import from Gmail"}
+      </Button>
+      {error && <span className="text-xs text-destructive">{error}</span>}
+    </div>
+  );
+};
+
 const Documents = () => {
   const { user } = useAuth();
   const [items, setItems] = useState([]);
@@ -357,6 +415,11 @@ const Documents = () => {
             <p className="text-sm sm:text-base text-muted-foreground mt-1">View, manage, and analyze your uploaded files.</p>
             <br />
         </div>
+      </div>
+
+      <div className="flex items-center justify-between gap-3 pb-1">
+        <div />
+        <ImportFromGmail user={user} onImported={() => window.location.reload()} />
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">

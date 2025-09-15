@@ -7,9 +7,9 @@ const Header = () => {
   const { user, logout, department } = useAuth();
 
   return (
-    <header className="relative bg-gradient-to-r from-blue-100 via-blue-50 to-green-100 border-b border-gray-300 shadow-md">
+    <header className="relative shadow-md">
       {/* Metro line accent at top */}
-      <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-blue-600 via-green-500 to-orange-500"></div>
+      <div className="absolute top-0 left-0 w-full h-5 bg-gradient-to-r from-blue-600 via-pink-500 to-blue-600"></div>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16 relative z-10">
@@ -18,8 +18,9 @@ const Header = () => {
           <div className="flex items-center space-x-3">
             <Train className="h-7 w-7 text-blue-700" />
             <div>
-              <h1 className="text-lg font-bold text-gray-900">KMRL DMS</h1>
+              <h1 className="text-lg font-bold text-blue-700">KMRL DMS</h1>
               <p className="text-xs text-gray-600">Document Management System</p>
+              <br />
             </div>
           </div>
 
@@ -52,7 +53,7 @@ const Header = () => {
                 asChild
                 variant="outline"
                 size="sm"
-                className="rounded-full border-green-600 text-green-700 hover:bg-green-600 hover:text-white transition-colors shadow-sm"
+                className="rounded-full border-pink-600 text-pink-700 hover:bg-pink-600 hover:text-white transition-colors shadow-sm"
               >
                 <Link to="/login">
                   <User className="h-4 w-4 mr-1" />

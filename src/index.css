@@ -198,9 +198,15 @@ All colors MUST be HSL.
 
 @keyframes textGlow {
   0% {
-    text-shadow: 0 0 20px hsl(209 87% 49% / 0.3);
+    filter: drop-shadow(0 0 20px hsl(209 87% 49% / 0.3));
   }
   100% {
-    text-shadow: 0 0 30px hsl(209 87% 49% / 0.6), 0 0 40px hsl(22 93% 55% / 0.3);
+    filter: drop-shadow(0 0 30px hsl(209 87% 49% / 0.6)) drop-shadow(0 0 40px hsl(22 93% 55% / 0.3));
   }
+}
+
+/* Force header background color */
+header {
+  background: linear-gradient(to right, #3b82f6, #ec4899, #3b82f6) !important;
+  background-color: #3b82f6 !important;
 }

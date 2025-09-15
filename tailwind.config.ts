@@ -16,6 +16,12 @@ export default {
     },
     extend: {
       colors: {
+        'kmrl-blue': '#00529B',   // KMRL's primary blue
+        'kmrl-pink': '#D91A5B',   // KMRL's accent pink/magenta
+        'kmrl-gray': {
+          DEFAULT: '#4A4A4A', // For body text
+          dark: '#212529', 
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -66,6 +72,10 @@ export default {
         sm: "calc(var(--radius) - 4px)",
       },
       keyframes: {
+        "subtle-pulse": {
+        "0%, 100%": { opacity: "1" },
+        "50%": { opacity: "0.8" },
+},
         "accordion-down": {
           from: { height: "0" },
           to: { height: "var(--radix-accordion-content-height)" },

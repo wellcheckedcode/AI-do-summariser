@@ -8,50 +8,87 @@ import sys
 import os
 import time
 import threading
+import signal
 from pathlib import Path
+
+# Global variables to track processes
+backend_process = None
+frontend_process = None
+
+def signal_handler(sig, frame):
+    """Handle Ctrl+C gracefully"""
+    print("\n[SHUTDOWN] Shutting down all services...")
+    if backend_process:
+        backend_process.terminate()
+    if frontend_process:
+        frontend_process.terminate()
+    sys.exit(0)
 
 def start_backend():
     """Start the backend server"""
+    global backend_process
     backend_dir = Path(__file__).parent / "backend"
-    os.chdir(backend_dir)
     
-    print("🚀 Starting Backend Server...")
+    print("[STARTUP] Starting Backend Server...")
     try:
-        subprocess.run([sys.executable, "start_backend.py"])
-    except KeyboardInterrupt:
-        print("\n👋 Backend stopped by user")
+        backend_process = subprocess.Popen(
+            [sys.executable, "app.py"],
+            cwd=backend_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            shell=True
+        )
+        
+        # Print backend output
+        for line in backend_process.stdout:
+            print(f"[BACKEND] {line.strip()}")
+            
     except Exception as e:
-        print(f"❌ Error starting backend: {e}")
+        print(f"[ERROR] Error starting backend: {e}")
 
 def start_frontend():
     """Start the frontend development server"""
+    global frontend_process
     frontend_dir = Path(__file__).parent
-    os.chdir(frontend_dir)
     
-    print("🚀 Starting Frontend Server...")
+    print("[STARTUP] Starting Frontend Server...")
     try:
-        subprocess.run(["npm", "run", "dev"])
-    except KeyboardInterrupt:
-        print("\n👋 Frontend stopped by user")
+        frontend_process = subprocess.Popen(
+            ["npm", "run", "dev"],
+            cwd=frontend_dir,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.STDOUT,
+            universal_newlines=True,
+            shell=True
+        )
+        
+        # Print frontend output
+        for line in frontend_process.stdout:
+            print(f"[FRONTEND] {line.strip()}")
+            
     except Exception as e:
-        print(f"❌ Error starting frontend: {e}")
+        print(f"[ERROR] Error starting frontend: {e}")
 
 def main():
+    # Set up signal handler for graceful shutdown
+    signal.signal(signal.SIGINT, signal_handler)
+    
     print("Metro Zen Flow - Full Stack Application")
     print("=" * 50)
     
     # Check if we're in the right directory
     if not os.path.exists("package.json"):
-        print("❌ Error: package.json not found!")
-        print("Please run this script from the metro-zen-flow directory")
+        print("[ERROR] package.json not found!")
+        print("Please run this script from the project root directory")
         sys.exit(1)
     
     if not os.path.exists("backend/app.py"):
-        print("❌ Error: backend/app.py not found!")
+        print("[ERROR] backend/app.py not found!")
         print("Please make sure the backend directory exists")
         sys.exit(1)
     
-    print("✅ Project structure verified")
+    print("[SUCCESS] Project structure verified")
     print("\nStarting services...")
     print("Backend will run on: http://localhost:5000")
     print("Frontend will run on: http://localhost:5173")
@@ -65,13 +102,16 @@ def main():
     # Give backend time to start
     time.sleep(3)
     
-    # Start frontend (this will block)
+    # Start frontend in a separate thread
+    frontend_thread = threading.Thread(target=start_frontend, daemon=True)
+    frontend_thread.start()
+    
+    # Keep the main thread alive
     try:
-        start_frontend()
+        while True:
+            time.sleep(1)
     except KeyboardInterrupt:
-        print("\n👋 Shutting down all services...")
-        sys.exit(0)
+        signal_handler(None, None)
 
 if __name__ == "__main__":
     main()
-

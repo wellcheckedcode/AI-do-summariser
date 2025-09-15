@@ -11,6 +11,22 @@ This backend service provides AI-powered document analysis for the Metro Zen Flo
 
 ## Setup
 
+### Gmail Import Setup
+
+1. Create a Google Cloud project and enable the Gmail API.
+2. Configure an OAuth 2.0 Client ID (type: Web Application):
+   - Authorized redirect URI: http://localhost:5000/api/gmail/callback
+3. Download the OAuth client JSON and place it at backend/client_secret.json or set GMAIL_CLIENT_SECRETS_FILE in ab.env.
+4. Add these to backend/ab.env:
+   - GMAIL_OAUTH_REDIRECT_URI=http://localhost:5000/api/gmail/callback
+   - SUPABASE_URL=your_supabase_url
+   - SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+   - SUPABASE_BUCKET=documents
+
+Security notes:
+- The Service Role Key is powerful; keep backend/ab.env private. Do not expose it to the frontend.
+- The sample stores OAuth tokens in memory keyed by a transient state; for production, persist per-user credentials securely (DB or encrypted store) and map to your Supabase user IDs.
+
 ### Prerequisites
 
 - Python 3.8 or higher

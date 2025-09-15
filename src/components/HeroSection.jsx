@@ -2,7 +2,7 @@ import PropTypes from 'prop-types'; // Import prop-types
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { ArrowRight, Scan, Languages, Brain } from "lucide-react";
-import heroBg from "@/assets/hero-bg.png";
+import heroBg from "@/assets/metro-hero.jpg";
 
 // --- Data for features, making the main component cleaner ---
 const features = [
@@ -42,7 +42,7 @@ const features = [
 // Removed the TypeScript interface and will use prop-types below
 const FeatureCard = ({ Icon, title, description, bgStyle, iconBgStyle, iconColor, textColor, borderStyle, animationDelay }) => (
   <div 
-    className="border-2 rounded-2xl p-6 text-center shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-all duration-300 hover:-translate-y-2 animate-fade-in-up w-full h-64 flex flex-col justify-center"
+    className="border-2 rounded-2xl p-6 text-center shadow-2xl hover:shadow-3xl transform hover:scale-105 transition-[transform,box-shadow] duration-300 hover:-translate-y-2 animate-fade-in-up w-full h-64 flex flex-col justify-center"
     style={{ 
       ...bgStyle, 
       ...borderStyle, 
@@ -101,7 +101,7 @@ const HeroSection = () => {
           {/* Main Content - Enhanced Header */}
           <div className="space-y-8 animate-fade-in-up max-w-4xl mx-auto text-center">
             {/* Enhanced Badge */}
-            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-white/15 to-white/5 text-white text-sm font-semibold backdrop-blur-md border border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
+            <div className="inline-flex items-center px-6 py-3 rounded-full bg-gradient-to-r from-white/15 to-white/5 text-white text-sm font-semibold backdrop-blur-md border border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 ">
               <div className="w-2 h-2 bg-gradient-to-r from-primary to-secondary rounded-full mr-3 animate-pulse"></div>
               Advanced Document Intelligence
             </div>

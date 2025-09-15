@@ -3,11 +3,12 @@ import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { apiService, fileToBase64 } from "@/lib/api";
-import { UploadCloud, Loader2 } from "lucide-react";
+import { UploadCloud, Loader2, Inbox } from "lucide-react";
 
 const GetStarted = () => {
   const { user, department } = useAuth();
   const [uploading, setUploading] = useState(false);
+  const [gmailImporting, setGmailImporting] = useState(false);
   const [message, setMessage] = useState("");
 
   const handleFileSelectAndUpload = async () => {
@@ -73,10 +74,50 @@ const GetStarted = () => {
     input.click();
   };
 
+  const handleGmailImport = async () => {
+    try {
+      setGmailImporting(true);
+      setMessage("");
+      if (!user) throw new Error("You must be logged in.");
+
+      // 1) Get OAuth URL
+      const { auth_url, state } = await apiService.getGmailAuthUrl(user.id);
+
+      // 2) Open popup for Google OAuth
+      const w = 600, h = 700;
+      const left = window.screenX + (window.outerWidth - w) / 2;
+      const top = window.screenY + (window.outerHeight - h) / 2;
+      const popup = window.open(auth_url, "gmail_oauth", `width=${w},height=${h},left=${left},top=${top}`);
+
+      // 3) Poll until popup is closed (after callback closes it)
+      await new Promise((resolve, reject) => {
+        const timer = setInterval(async () => {
+          if (!popup || popup.closed) {
+            clearInterval(timer);
+            resolve();
+          }
+        }, 700);
+        setTimeout(() => { try { clearInterval(timer); } catch {} resolve(); }, 120000); // safety timeout
+      });
+
+      // 4) Import attachments with the OAuth state - focus on unread messages
+      const importRes = await apiService.importFromGmail(state, {
+        query: 'is:unread has:attachment newer_than:30d',
+        maxResults: 50
+      });
+      console.log(importRes);
+      setMessage(`Gmail import successful! Imported ${importRes.imported || 0} documents from unread emails. Find them in the Dashboard.`);
+    } catch (e) {
+      setMessage(e?.message || "Gmail import failed.");
+    } finally {
+      setGmailImporting(false);
+    }
+  };
+
   
   return (
     <div className="min-h-1 flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50 p-4 height-100vh">
-      <Card className="w-96 h-96 mx-auto bg-blue-100 shadow-xl border ...">
+      <Card className="w-96 h-auto mx-auto bg-blue-100 shadow-xl border ...">
         <CardHeader className="text-center pt-8 pb-4">
           <CardTitle className="text-1x5 text-gray-800">
             Get Started
@@ -85,40 +126,65 @@ const GetStarted = () => {
             Upload documents to begin processing.
           </p>
         </CardHeader>
-        <CardContent className="px-8 pb-8 flex-1 flex flex-col items-center justify-center text-center gap-6">
+        <CardContent className="px-8 pb-8 flex-1 flex flex-col items-center justify-center text-center gap-6 min-h-[300px]">
           {/* Main Icon */}
           <div className="w-30 h-30 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
             <UploadCloud className="w-15 h-20 text-blue-500" strokeWidth={2.5} />
           </div>
 
           <p className="text-sm text-gray-600 leading-relaxed gap-2">
-            You can select multiple files. Click the button below to browse files from your device.
+            Choose how you'd like to add documents. Upload files from your device or import attachments from Gmail.
           </p>
           
-          <div className="w-full flex flex-col items-center gap-2">
-            <Button 
-              onClick={handleFileSelectAndUpload} 
-              disabled={uploading}
-              className="w-full py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-white-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-blue-500/30 text-base"
-            >
-              {uploading ? (
-                <>
-                  <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                  Uploading...
-                </>
-              ) : (
-                "Choose & Upload Documents"
-              )}
-            </Button>
+          <div className="w-full flex flex-col items-center gap-3">
+            <div className="w-full flex gap-2">
+              <Button 
+                onClick={handleFileSelectAndUpload} 
+                disabled={uploading || gmailImporting}
+                className="flex-1 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-blue-500 to-purple-500 hover:from-blue-600 hover:to-purple-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-blue-500/30 text-sm"
+              >
+                {uploading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <UploadCloud className="mr-2 h-4 w-4" />
+                    Choose & Upload
+                  </>
+                )}
+              </Button>
+              
+              <Button 
+                onClick={handleGmailImport} 
+                disabled={uploading || gmailImporting || !user}
+                className="flex-1 py-3 rounded-lg font-semibold text-white bg-gradient-to-r from-green-500 to-emerald-500 hover:from-green-600 hover:to-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-300 shadow-lg hover:shadow-green-500/30 text-sm"
+              >
+                {gmailImporting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Importing...
+                  </>
+                ) : (
+                  <>
+                    <Inbox className="mr-2 h-4 w-4" />
+                    Import from Gmail
+                  </>
+                )}
+              </Button>
+            </div>
             
-            <p className="text-xs text-gray-500 h-4 mt-1">
-              {uploading ? "Please wait while we process your files..." : "Max file size: 50MB"}
+            <p className="text-xs text-gray-500 h-4 mt-1 text-center">
+              {uploading ? "Please wait while we process your files..." : 
+               gmailImporting ? "Please wait while we import from Gmail..." :
+               "Max file size: 50MB • Gmail imports recent attachments"}
             </p>
           </div>
 
           {message && (
             <div className={`p-2 rounded-lg text-xs text-center ${
-              message.includes('successfully') 
+              message.includes('successfully') || message.includes('successful')
                 ? 'bg-green-50 text-green-700 border border-green-200' 
                 : 'bg-red-50 text-red-700 border border-red-200'
             }`}>
