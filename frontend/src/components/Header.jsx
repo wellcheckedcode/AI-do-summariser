@@ -7,7 +7,7 @@ const Header = () => {
   const { user, logout, department } = useAuth();
 
   return (
-    <header className="relative shadow-md">
+    <header className="relative shadow-md bg-sky-200">
       {/* Metro line accent at top */}
       <div className="absolute top-0 left-0 w-full h-5 bg-gradient-to-r from-blue-600 via-pink-500 to-blue-600"></div>
 

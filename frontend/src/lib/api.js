@@ -1,5 +1,8 @@
 // API service for backend integration
-const API_BASE_URL = 'http://localhost:5000/api';
+// Prefer env var from Vite at build time; fallback to localhost for dev
+const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_API_BASE_URL)
+  ? import.meta.env.VITE_API_BASE_URL
+  : 'http://localhost:5000/api';
 
 export const apiService = {
   // Analyze document with AI

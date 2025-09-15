@@ -50,17 +50,20 @@ def start_backend():
 def start_frontend():
     """Start the frontend development server"""
     global frontend_process
-    frontend_dir = Path(__file__).parent
+    # Run the frontend dev server directly inside the frontend directory
+    frontend_dir = Path(__file__).parent / "frontend"
     
     print("[STARTUP] Starting Frontend Server...")
     try:
+        # On Windows, npm executable is npm.cmd
+        npm_exec = "npm.cmd" if os.name == "nt" else "npm"
         frontend_process = subprocess.Popen(
-            ["npm", "run", "dev"],
+            [npm_exec, "run", "dev"],
             cwd=frontend_dir,
             stdout=subprocess.PIPE,
             stderr=subprocess.STDOUT,
             universal_newlines=True,
-            shell=True
+            shell=False
         )
         
         # Print frontend output

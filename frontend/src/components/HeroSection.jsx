@@ -10,7 +10,7 @@ const features = [
     Icon: Scan,
     title: "Smart OCR",
     description: "Extract text from any document format.",
-    bgStyle: { background: 'linear-gradient(135deg, #2563eb, #1d4ed8)' },
+    bgStyle: { background: 'linear-gradient(135deg, #2563eb, #808080)' },
     iconBgStyle: { backgroundColor: '#3b82f6' },
     iconColor: "text-white",
     textColor: "text-white",
@@ -20,7 +20,7 @@ const features = [
     Icon: Languages,
     title: "Auto Translate",
     description: "Seamless English & Malayalam support.",
-    bgStyle: { background: 'linear-gradient(135deg, #ea580c, #c2410c)' },
+    bgStyle: { background: 'linear-gradient(135deg, #ea580c, #87CEEB)' },
     iconBgStyle: { backgroundColor: '#f97316' },
     iconColor: "text-white",
     textColor: "text-white",
@@ -30,7 +30,7 @@ const features = [
     Icon: Brain,
     title: "AI Summary",
     description: "Generate intelligent insights instantly.",
-    bgStyle: { background: 'linear-gradient(135deg, #9333ea, #7c3aed)' },
+    bgStyle: { background: 'linear-gradient(135deg, #9333ea, #E5CFFB)' },
     iconBgStyle: { backgroundColor: '#a855f7' },
     iconColor: "text-white",
     textColor: "text-white",
@@ -108,11 +108,11 @@ const HeroSection = () => {
             
             {/* Enhanced Main Heading */}
             <div className="space-y-4">
-            <h1 className="text-5xl md:text-6xl lg:text-7xl font-black tracking-tight leading-tight">
+            <h1 className="text-5xl md:text-6xl lg:text-7xl font-white tracking-tight leading-tight">
               <span className="gradient-hero bg-clip-text text-transparent drop-shadow-2xl animate-text-glow">
                 Streamline Document
               </span>
-              <span className="block text-white drop-shadow-2xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0.8)' }}>
+              <span className="block text-black drop-shadow-2xl" style={{ textShadow: '2px 2px 4px rgba(0,0,0,0)' }}>
                 Management at KMRL
               </span>
             </h1>
@@ -126,7 +126,7 @@ const HeroSection = () => {
             </div>
 
             {/* Enhanced Description */}
-            <p className="max-w-2xl mx-auto text-xl text-white leading-relaxed font-light" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
+            <p className="max-w-2xl mx-auto text-xl text-white leading-relaxed font-light" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0)' }}>
               Unlock the power of your documents with 
               <span className="text-primary font-semibold" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}> AI-driven OCR</span>, 
               <span className="text-secondary font-semibold" style={{ textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}> translation</span>, and 
