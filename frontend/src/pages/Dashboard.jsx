@@ -7,7 +7,10 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { getViewUrl } from "@/lib/storage";
 
-import { LayoutDashboard, FolderKanban, UploadCloud, ArrowLeft, Loader2, ServerCrash, Inbox } from "lucide-react";
+import { LayoutDashboard, FolderKanban, UploadCloud, ArrowLeft, Loader2, ServerCrash, Inbox, Paperclip, Inbox as InboxIcon, Image as ImageIcon } from "lucide-react";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import BackButton from "@/components/BackButton";
+import PageShell from "@/components/PageShell";
 
 const ActionCard = ({ icon, title, description, buttonText, onClick, index }) => {
     return (
@@ -36,7 +39,7 @@ const Dashboard = () => {
     const { user, department } = useAuth();
     const navigate = useNavigate();
 
-    const [showDocuments, setShowDocuments] = useState(false);
+    const [showDocuments, setShowDocuments] = useState(true);
     const [docs, setDocs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
@@ -113,39 +116,36 @@ const Dashboard = () => {
         navigate('/get-started');
     };
 
-    const renderDashboardContent = () => {
-        if (!showDocuments) {
-            return (
-                <div className="flex flex-col items-center justify-center min-h-[calc(100vh-200px)] px-4">
-                    <div className="flex flex-col sm:flex-row gap-8 items-center justify-center max-w-4xl w-full">
-                        <ActionCard
-                            index={0}
-                            icon={<FolderKanban className="h-8 w-8 text-primary" />}
-                            title="Department Documents"
-                            description={`View recent documents from the ${department || '...'} department.`}
-                            buttonText="View Documents"
-                            onClick={handleViewDocumentsClick}
-                        />
+    const UploadMenu = ({ onUploadClick }) => (
+        <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+                <Button size="sm" className="inline-flex items-center gap-2">
+                    <Paperclip className="h-4 w-4" /> Upload
+                </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onUploadClick(); }}>
+                    <ImageIcon className="h-4 w-4 mr-2" /> Upload from device
+                </DropdownMenuItem>
+                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); navigate('/get-started'); }}>
+                    <InboxIcon className="h-4 w-4 mr-2" /> Import from Gmail
+                </DropdownMenuItem>
+            </DropdownMenuContent>
+        </DropdownMenu>
+    );
 
-                        <ActionCard
-                            index={1}
-                            icon={<UploadCloud className="h-8 w-8 text-primary" />}
-                            title="Upload New Files"
-                            description="Add new documents to be processed and summarized."
-                            buttonText="Upload Documents"
-                            onClick={handleUploadClick}
-                        />
-                    </div>
-                </div>
-            );
-        }
+    const renderDashboardContent = () => {
+        // Always show documents by default
 
         return (
             <div className="space-y-6 Opacity-1 animate-fadeInUp">
-                <Button variant="outline" onClick={handleBackClick} className="mb-4">
-                    <ArrowLeft className="mr-2 h-4 w-4" />
-                    Back to Dashboard
-                </Button>
+                <div className="flex items-center justify-between mb-4">
+                    <div className="text-sm text-muted-foreground">Recent {department} files</div>
+                    {/* Upload menu */}
+                    <div className="relative">
+                        <UploadMenu onUploadClick={handleUploadClick} />
+                    </div>
+                </div>
 
                 {loading && (
                     <div className="flex justify-center items-center p-8">
@@ -188,19 +188,15 @@ const Dashboard = () => {
     };
 
     return (
-        <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
-            <div className="flex items-center gap-4">
-                <div className="p-3 bg-primary/10 rounded-lg">
-                    <LayoutDashboard className="h-6 w-6 text-primary" />
-                </div>
-                <div>
-                    <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Dashboard</h1>
-                    <p className="text-sm sm:text-base text-muted-foreground mt-1">Welcome, {user?.user_metadata?.full_name || user?.email}</p>
-                </div>
-            </div>
+        <PageShell
+            title="Dashboard"
+            subtitle={`Welcome, ${user?.user_metadata?.full_name || user?.email}`}
+            icon={<LayoutDashboard className="h-6 w-6 text-primary" />}
+        >
+            <BackButton />
             
             {renderDashboardContent()}
-        </div>
+        </PageShell>
     );
 };
 

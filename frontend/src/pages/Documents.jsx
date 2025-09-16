@@ -8,8 +8,10 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 
-import { getViewUrl, STORAGE_BUCKET } from "@/lib/storage";
+import { getViewUrl } from "@/lib/storage";
 import { apiService } from "@/lib/api";
+import BackButton from "@/components/BackButton";
+import PageShell from "@/components/PageShell";
 import {
   FileText, Eye, Bot, Loader2, ServerCrash, Inbox, FileCode, FileImage, FileAudio,
   FileVideo, Briefcase, CalendarDays, Scale
@@ -166,24 +168,10 @@ const Documents = () => {
         const { data, error } = await supabase
           .from("documents")
           .select("id,name,path,mime_type,size_bytes,created_at,ai_summary,department,is_read")
-          .eq("user_id", user.id)
           .order("created_at", { ascending: false });
         if (error) throw error;
-
-        const { data: storageList, error: listErr } = await supabase
-          .storage
-          .from(STORAGE_BUCKET)
-          .list(user.id, { limit: 1000 });
-        if (listErr) {
-          if (!alive) return;
-          setItems(data || []);
-          return;
-        }
-
-        const existingPaths = new Set((storageList || []).map((o) => `${user.id}/${o.name}`));
-        const filtered = (data || []).filter((row) => existingPaths.has(row.path));
         if (!alive) return;
-        setItems(filtered);
+        setItems(data || []);
 
       } catch (err) {
         if (!alive) return;
@@ -405,17 +393,12 @@ const Documents = () => {
   };
 
   return (
-    <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
-       <div className="flex items-center gap-4">
-        <div className="p-3 bg-primary/10 rounded-lg">
-            <FileText className="h-6 w-6 text-primary" />
-        </div>
-        <div>
-            <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">Your Documents</h1>
-            <p className="text-sm sm:text-base text-muted-foreground mt-1">View, manage, and analyze your uploaded files.</p>
-            <br />
-        </div>
-      </div>
+    <PageShell
+      title="All Documents"
+      subtitle="View, manage, and analyze files uploaded by any member."
+      icon={<FileText className="h-6 w-6 text-primary" />}
+    >
+      <BackButton />
 
       <div className="flex items-center justify-between gap-3 pb-1">
         <div />
@@ -446,7 +429,7 @@ const Documents = () => {
           )}
         </DialogContent>
       </Dialog>
-    </div>
+    </PageShell>
   );
 };
 

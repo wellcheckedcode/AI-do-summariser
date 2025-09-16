@@ -2,16 +2,25 @@ import { useState } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { useNavigate } from "react-router-dom";
 import { apiService, fileToBase64 } from "@/lib/api";
 import { UploadCloud, Loader2, Inbox } from "lucide-react";
+import BackButton from "@/components/BackButton";
 
 const GetStarted = () => {
   const { user, department } = useAuth();
+  const navigate = useNavigate();
   const [uploading, setUploading] = useState(false);
   const [gmailImporting, setGmailImporting] = useState(false);
   const [message, setMessage] = useState("");
+  const [showAuthDialog, setShowAuthDialog] = useState(false);
 
   const handleFileSelectAndUpload = async () => {
+    if (!user) {
+      setShowAuthDialog(true);
+      return;
+    }
     // Create a hidden file input
     const input = document.createElement('input');
     input.type = 'file';
@@ -78,7 +87,10 @@ const GetStarted = () => {
     try {
       setGmailImporting(true);
       setMessage("");
-      if (!user) throw new Error("You must be logged in.");
+      if (!user) {
+        setShowAuthDialog(true);
+        return;
+      }
 
       // 1) Get OAuth URL
       const { auth_url, state } = await apiService.getGmailAuthUrl(user.id);
@@ -117,6 +129,9 @@ const GetStarted = () => {
   
   return (
     <div className="min-h-1 flex items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-cyan-50 p-4 height-100vh">
+      <div className="fixed top-4 left-4">
+        <BackButton className="" />
+      </div>
       <Card className="w-96 h-auto mx-auto bg-blue-100 shadow-xl border ...">
         <CardHeader className="text-center pt-8 pb-4">
           <CardTitle className="text-1x5 text-gray-800">
@@ -193,6 +208,21 @@ const GetStarted = () => {
           )}
         </CardContent>
       </Card>
+
+      <Dialog open={showAuthDialog} onOpenChange={setShowAuthDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Sign in required</DialogTitle>
+          </DialogHeader>
+          <div className="text-sm text-muted-foreground">
+            Please sign in to upload documents or import from Gmail.
+          </div>
+          <DialogFooter className="sm:justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowAuthDialog(false)}>Cancel</Button>
+            <Button onClick={() => navigate('/login')}>Sign in</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

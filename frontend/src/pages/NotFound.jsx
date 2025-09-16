@@ -1,5 +1,7 @@
 import { useLocation } from "react-router-dom";
 import { useEffect } from "react";
+import BackButton from "@/components/BackButton";
+import PageShell from "@/components/PageShell";
 
 const NotFound = () => {
   const location = useLocation();
@@ -9,15 +11,16 @@ const NotFound = () => {
   }, [location.pathname]);
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="mb-4 text-4xl font-bold">404</h1>
-        <p className="mb-4 text-xl text-gray-600">Oops! Page not found</p>
-        <a href="/" className="text-blue-500 underline hover:text-blue-700">
-          Return to Home
-        </a>
+    <PageShell>
+      <div className="relative">
+        <div className="absolute top-0 left-0"><BackButton /></div>
+        <div className="text-center py-24">
+          <h1 className="mb-2 text-5xl font-extrabold text-gray-800">404</h1>
+          <p className="mb-6 text-lg text-gray-600">Oops! Page not found</p>
+          <a href="/" className="text-primary underline hover:opacity-80">Return to Home</a>
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 };
 

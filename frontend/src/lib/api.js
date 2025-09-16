@@ -6,7 +6,7 @@ const API_BASE_URL = (typeof import.meta !== 'undefined' && import.meta.env && i
 
 export const apiService = {
   // Analyze document with AI
-  async analyzeDocument(fileData, filename) {
+  async analyzeDocument(fileData, filename, prompt) {
     try {
       const response = await fetch(`${API_BASE_URL}/analyze-document`, {
         method: 'POST',
@@ -15,7 +15,8 @@ export const apiService = {
         },
         body: JSON.stringify({
           file_data: fileData,
-          filename: filename
+          filename: filename,
+          prompt: prompt || undefined
         })
       });
 

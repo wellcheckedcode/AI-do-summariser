@@ -137,4 +137,20 @@ All colors MUST be HSL.
   }
 }
 
-/* Force header background color */
+/* Smooth looping doc send animation from left to right then reset */
+@keyframes sendDoc {
+  0% { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+  70% { transform: translate(260px, -24px) rotate(12deg); opacity: 1; }
+  80% { opacity: 0; }
+  100% { transform: translate(0, 0) rotate(0deg); opacity: 0; }
+}
+
+/* Motion-path variant using offset-path for smoother curve travel */
+@keyframes sendDocPath {
+  0% { offset-distance: 0%; opacity: 1; }
+  85% { offset-distance: 100%; opacity: 1; }
+  90% { opacity: 0; }
+  100% { offset-distance: 0%; opacity: 0; }
+}
+
+

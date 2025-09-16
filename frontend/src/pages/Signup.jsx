@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Train, FileText, ArrowRight, Mail, Lock, Building, UserPlus, CheckCircle } from "lucide-react";
+import BackButton from "@/components/BackButton";
 
 const departments = [
 	{ value: "HR", label: "Human Resources", icon: "👥" },
@@ -26,7 +27,7 @@ const Signup = () => {
 	const [message, setMessage] = useState("");
 	const [loading, setLoading] = useState(false);
 
-	if (user) return <Navigate to="/dashboard" replace />;
+	if (user) return <Navigate to="/" replace />;
 
 	const onSubmit = async (e) => {
 		e.preventDefault();
@@ -50,11 +51,12 @@ const Signup = () => {
 			setMessage("Account created successfully! Check your email to confirm your account, then log in.");
 			return;
 		}
-		navigate("/dashboard", { replace: true });
+		navigate("/", { replace: true });
 	};
 
 	return (
 		<div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-100 flex items-center justify-center p-4 relative overflow-hidden">
+			<div className="absolute top-4 left-4 z-20"><BackButton /></div>
 			{/* Background Railway Elements */}
 			<div className="absolute inset-0 opacity-5">
 				<div className="absolute top-20 left-10 w-32 h-32 border-4 border-primary rounded-full"></div>
