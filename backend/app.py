@@ -39,8 +39,9 @@ def analyze_document():
         
         file_data = data['file_data']
         filename = data['filename']
+        custom_prompt = data.get('prompt')
         
-        result = generate_universal_caption(file_data, filename)
+        result = generate_universal_caption(file_data, filename, custom_prompt)
         
         if 'error' in result:
             return jsonify(result), 400

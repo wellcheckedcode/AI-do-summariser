@@ -21,7 +21,7 @@ GEN_AI_API_KEY = os.environ.get("GEN_AI_API_KEY")
 genai.configure(api_key=GEN_AI_API_KEY)
 
 
-def generate_universal_caption(file_data: str, filename: str):
+def generate_universal_caption(file_data: str, filename: str, custom_prompt: str | None = None):
     """
     Generate AI summary and detect department for uploaded file.
     Accepts a base64 data URL string and original filename.
@@ -41,7 +41,8 @@ def generate_universal_caption(file_data: str, filename: str):
         main_type = mime_type.split('/')[0]
 
         if main_type == 'image':
-            prompt = "Generate a short, descriptive summary for this image and detect the department to which it should belong (HR, IT, Finance, Operations, Legal). Return the response in JSON format with 'summary' and 'department' fields."
+            base_prompt = "Generate a short, descriptive summary for this image and detect the department to which it should belong (HR, IT, Finance, Operations, Legal). Return the response in JSON format with 'summary' and 'department' fields."
+            prompt = f"{base_prompt}\n\nAdditional instructions: {custom_prompt}" if custom_prompt else base_prompt
 
             # Convert base64 to image
             image_data = base64.b64decode(file_data.split(',')[1])
@@ -70,7 +71,8 @@ def generate_universal_caption(file_data: str, filename: str):
                 }
 
         elif mime_type == 'application/pdf':
-            prompt = "Analyze this document image and provide a summary. Also detect the department to which it should belong (HR, IT, Finance, Operations, Legal). Return the response in JSON format with 'summary' and 'department' fields."
+            base_prompt = "Analyze this document image and provide a summary. Also detect the department to which it should belong (HR, IT, Finance, Operations, Legal). Return the response in JSON format with 'summary' and 'department' fields."
+            prompt = f"{base_prompt}\n\nAdditional instructions: {custom_prompt}" if custom_prompt else base_prompt
 
             # Convert base64 to PDF data
             pdf_data = base64.b64decode(file_data.split(',')[1])
