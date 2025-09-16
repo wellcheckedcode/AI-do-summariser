@@ -10,7 +10,7 @@ else:
     load_dotenv()
 
 app = Flask(__name__)
-CORS(app)
+CORS(app, resources={r"/*": {"origins": "*"}})  # or restrict to your Vercel domain
 
 # Import analyzer logic from separate module
 from analyzer import generate_universal_caption
