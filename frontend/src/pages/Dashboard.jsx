@@ -43,6 +43,15 @@ const Dashboard = () => {
     const [docs, setDocs] = useState([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
+    const priorityOrder = { "High": 1, "Medium": 2, "Low": 3 };
+
+const sortDocumentsByPriority = (docs) => {
+  return docs.sort((a, b) => {
+    const priorityA = priorityOrder[a.priority] || 4;
+    const priorityB = priorityOrder[b.priority] || 4;
+    return priorityA - priorityB;
+  });
+};
 
     // View a document via public or signed URL
     const onView = async (path) => {
@@ -72,7 +81,7 @@ const Dashboard = () => {
                 
                 const { data, error } = await supabase
                     .from("documents")
-                    .select("id, name, ai_summary, created_at, department, path")
+                    .select("id, name, ai_summary, created_at, department, path, priority, action_required")
                     .eq("department", department)
                     .order("created_at", { ascending: false })
                     .limit(50);
@@ -86,10 +95,12 @@ const Dashboard = () => {
                     summary: doc.ai_summary || "No summary available",
                     updatedAt: new Date(doc.created_at).toLocaleDateString(),
                     department: doc.department,
-                    path: doc.path
+                    path: doc.path,
+                    priority: doc.priority || "Medium", // <-- Add priority
+                    action_required: doc.action_required || "Review" //
                 }));
                 
-                setDocs(transformedDocs);
+               setDocs(sortDocumentsByPriority(transformedDocs));
             } catch (err) {
                 if (!alive) return;
                 setError(err.message || "Failed to load documents");
@@ -176,6 +187,8 @@ const Dashboard = () => {
                                 title={d.title}
                                 summary={d.summary}
                                 updatedAt={d.updatedAt}
+                                priority={d.priority}
+                                action_required={d.action_required}
                                 onOpen={() => onView(d.path)}
                                 style={{ animationDelay: `${index * 75}ms` }}
                                 className="Opacity-1 animate-fadeInUp"

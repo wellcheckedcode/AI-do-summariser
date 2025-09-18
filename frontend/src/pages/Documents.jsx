@@ -16,8 +16,18 @@ import {
   FileText, Eye, Bot, Loader2, ServerCrash, Inbox, FileCode, FileImage, FileAudio,
   FileVideo, Briefcase, CalendarDays, Scale
 } from "lucide-react";
+import { Badge } from "@/components/ui/badge"; 
 
 // Helper functions and UI State Components remain the same from the previous version.
+const priorityOrder = { "High": 1, "Medium": 2, "Low": 3 };
+
+const sortDocumentsByPriority = (docs) => {
+  return docs.sort((a, b) => {
+    const priorityA = priorityOrder[a.priority] || 4;
+    const priorityB = priorityOrder[b.priority] || 4;
+    return priorityA - priorityB;
+  });
+};
 const formatBytes = (bytes, decimals = 2) => {
   if (!+bytes) return '0 Bytes';
   const k = 1024;
@@ -167,11 +177,11 @@ const Documents = () => {
         const { supabase } = await import("@/integrations/supabase/client");
         const { data, error } = await supabase
           .from("documents")
-          .select("id,name,path,mime_type,size_bytes,created_at,ai_summary,department,is_read")
+          .select("id,name,path,mime_type,size_bytes,created_at,ai_summary,department,is_read,priority,action_required")
           .order("created_at", { ascending: false });
         if (error) throw error;
         if (!alive) return;
-        setItems(data || []);
+        setItems(sortDocumentsByPriority(data || []));
 
       } catch (err) {
         if (!alive) return;
@@ -312,6 +322,12 @@ const Documents = () => {
       const rowId = it.id ?? it.path;
       const busy = !!summarizing[rowId];
       const isUpdatingRead = !!updatingRead[rowId];
+      
+      const getPriorityVariant = () => {
+        if (it.priority === 'High') return 'destructive';
+        if (it.priority === 'Medium') return 'secondary';
+        return 'outline';
+      };
 
       return (
         <Card
@@ -325,7 +341,11 @@ const Documents = () => {
             <CardHeader className="flex flex-row items-start gap-4 space-y-0">
               {getFileIcon(it.mime_type)}
               <div className="flex-1 overflow-hidden">
-                <CardTitle className="text-base leading-snug truncate" title={it.name}>{it.name}</CardTitle>
+                <div className="flex justify-between items-start">
+                  <CardTitle className="text-base leading-snug truncate" title={it.name}>{it.name}</CardTitle>
+                  {/* --- ADDED PRIORITY BADGE --- */}
+                  <Badge variant={getPriorityVariant()}>{it.priority || 'Medium'}</Badge>
+                </div>
                 <div className="flex items-center gap-2 text-xs text-muted-foreground pt-1.5">
                     <CalendarDays className="h-3.5 w-3.5" />
                     <span>{new Date(it.created_at).toLocaleDateString()}</span>
@@ -334,6 +354,12 @@ const Documents = () => {
             </CardHeader>
             <CardContent className="space-y-3 text-sm pb-4">
               <div className="space-y-2">
+                {/* --- ADDED ACTION REQUIRED TEXT --- */}
+                {it.action_required && (
+                    <div className="flex items-center gap-2 font-semibold text-xs text-foreground mb-1">
+                      <span>Action: {it.action_required}</span>
+                    </div>
+                )}
                 {it.department && (
                   <div className="flex items-center gap-2 text-muted-foreground">
                     <Briefcase className="h-4 w-4 flex-shrink-0" />
@@ -346,7 +372,6 @@ const Documents = () => {
                 </div>
               </div>
 
-              {/* --- NEW: In-card AI Summary Snippet --- */}
               {it.ai_summary && (
                 <div className="pt-3 border-t">
                   <div className="flex items-center gap-2 font-semibold text-xs text-foreground mb-1">

@@ -45,11 +45,15 @@ const GetStarted = () => {
           // Analyze document with AI to get summary and department
           let aiSummary = "";
           let detectedDepartment = department || "Unknown";
+          let detectedPriority = "Medium"; // Default priority
+          let actionRequired = "Review required"; // Default action
           
           try {
             const analysis = await apiService.analyzeDocument(fileData, f.name);
             aiSummary = analysis.summary || "";
             detectedDepartment = analysis.department || department || "Unknown";
+            detectedPriority = analysis.priority || "Medium"; // Get priority from API
+            actionRequired = analysis.action_required || "Review required";
           } catch (aiError) {
             console.warn("AI analysis failed, using fallback:", aiError);
             aiSummary = `Document: ${f.name}`;
@@ -68,6 +72,8 @@ const GetStarted = () => {
             mime_type: f.type || null,
             size_bytes: f.size ?? null,
             ai_summary: aiSummary,
+            priority: detectedPriority, // <-- ADDED
+            action_required: actionRequired,
             created_at: new Date().toISOString()
           });
           if (dbError) throw dbError;

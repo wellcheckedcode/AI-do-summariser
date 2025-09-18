@@ -1,3 +1,5 @@
+# backend/app.py
+
 from flask import Flask, request, jsonify
 from flask_cors import CORS
 import os
@@ -49,7 +51,9 @@ def analyze_document():
         return jsonify({
             "success": True,
             "summary": result['summary'],
-            "department": result['department']
+            "department": result['department'],
+            "priority": result.get('priority', 'Medium'),
+            "action_required": result.get('action_required', 'Review required')
         })
         
     except Exception as e:
@@ -69,4 +73,3 @@ def health_check():
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
-

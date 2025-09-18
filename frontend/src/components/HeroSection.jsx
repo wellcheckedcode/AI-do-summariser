@@ -66,7 +66,7 @@ const Header = () => {
 
 
 //=================================================================
-// 2. HERO SECTION COMPONENT (UNCHANGED)
+// 2. HERO SECTION COMPONENT (MODIFIED TO SAVE TO SUPABASE)
 //=================================================================
 const HeroSection = () => {
   const { user } = useAuth();
@@ -98,22 +98,18 @@ const HeroSection = () => {
     if (!raw) return "";
     let text = String(raw).trim();
     text = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
-    // Try parse JSON and pick summary field if present
     try {
       const parsed = JSON.parse(text);
       if (parsed && typeof parsed === "object") {
         if (typeof parsed.summary === "string") return parsed.summary.trim();
-        // If array of objects with summary
         if (Array.isArray(parsed)) {
           const found = parsed.find((x) => x && typeof x.summary === "string");
           if (found) return String(found.summary).trim();
         }
-        // Fallback: join string values
         const maybe = Object.values(parsed).find((v) => typeof v === "string");
         if (maybe) return String(maybe).trim();
       }
     } catch {}
-    // Remove obvious labels like "summary:", "department:", braces, etc.
     text = text.replace(/\b(summary|department)\s*[:=]/gi, "");
     text = text.replace(/[{}\[\]"]/g, "").trim();
     return text;
@@ -137,15 +133,58 @@ const HeroSection = () => {
     try {
       setIsUploading(true);
       setProgress(10);
+      setMessage("Analyzing document...");
       const base64 = await fileToBase64(selectedFile);
+      
       setProgress(40);
       const response = await apiService.analyzeDocument(base64, selectedFile.name, promptText.trim() || undefined);
-      setProgress(100);
       const cleanSummary = sanitizeSummary(response?.summary);
-      const cleaned = { ...response, summary: cleanSummary };
+      const detectedDepartment = response?.department || "Unknown";
+      
+      // =================================================================
+      // START: ADDED LOGIC TO UPLOAD FILE AND SAVE TO DATABASE
+      // =================================================================
+      setProgress(70);
+      setMessage("Saving document...");
+
+      // 1. Dynamically import Supabase client and config
+      const { supabase } = await import("@/integrations/supabase/client");
+      const { STORAGE_BUCKET } = await import("@/lib/storage");
+
+      // 2. Define a unique path and upload the file to Supabase Storage
+      const path = `${user.id}/${Date.now()}-${selectedFile.name}`;
+      const { error: storageError } = await supabase.storage
+        .from(STORAGE_BUCKET)
+        .upload(path, selectedFile);
+
+      if (storageError) {
+        throw new Error(`Storage Error: ${storageError.message}`);
+      }
+      
+      // 3. Insert metadata and AI results into the 'documents' table
+      const { error: dbError } = await supabase.from("documents").insert({
+        user_id: user.id,
+        department: detectedDepartment,
+        name: selectedFile.name,
+        path,
+        mime_type: selectedFile.type || null,
+        size_bytes: selectedFile.size ?? null,
+        ai_summary: cleanSummary,
+        created_at: new Date().toISOString()
+      });
+
+      if (dbError) {
+        throw new Error(`Database Error: ${dbError.message}`);
+      }
+      // =================================================================
+      // END: ADDED LOGIC
+      // =================================================================
+
+      setProgress(100);
+      const cleaned = { ...response, summary: cleanSummary, department: detectedDepartment };
       setResult(cleaned);
       setShrinkHero(true);
-      // Typewriter animation
+      
       setDisplayedSummary("");
       const full = cleanSummary || "";
       let i = 0;
@@ -166,7 +205,8 @@ const HeroSection = () => {
           }, estMs);
         }, 15);
       }
-      setMessage("Analysis complete.");
+      setMessage("Analysis complete. Document saved.");
+
     } catch (err) {
       setMessage(err?.message || "Upload failed");
     } finally {
@@ -202,11 +242,12 @@ const HeroSection = () => {
       });
       const res = await apiService.importFromGmail(state, { query: 'is:unread has:attachment newer_than:30d', maxResults: 25 });
       setMessage(`Imported ${res?.imported || 0} attachments from Gmail. Check Documents/Dashboard.`);
-    } catch (e) {
+    } catch (e)      {
       setMessage(e?.message || "Gmail import failed.");
     }
   };
 
+  // ... (the rest of the return statement and JSX is exactly the same as your original)
   return (
     <>
     <section
@@ -217,17 +258,12 @@ const HeroSection = () => {
     >
       <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8">
         <div className={`flex flex-col items-center ${shrinkHero ? 'space-y-3' : 'space-y-6'} max-w-4xl mx-auto ${shrinkHero ? 'pt-16' : 'pt-24'}`}>
-          
-          
-          
           <h1 className={`${shrinkHero ? 'text-3xl md:text-4xl lg:text-5xl' : 'text-5xl md:text-6xl lg:text-7xl'} font-extrabold text-gray-800 tracking-tight leading-tight`}>
-            AI Summary <br /> & Document Manager
+            AI Summary <br /> & <br />Document Manager
           </h1>
-
           <p className="text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
             AI-powered Docs Manager designed to build, scale, and elevate your business.
           </p>
-
           <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto pt-4">
             <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-300 shadow-lg p-2">
               <DropdownMenu>
@@ -276,28 +312,23 @@ const HeroSection = () => {
                 </div>
                 {showSendAnim && (
                   <div className="mt-3 relative h-24">
-                    {/* Curved path (SVG) */}
                     <svg className="absolute inset-0 w-full h-full" viewBox="0 0 320 96" preserveAspectRatio="none">
                       <path d="M20,76 C120,10 200,10 300,20" fill="none" stroke="#cbd5e1" strokeWidth="2" strokeDasharray="6 6" />
                     </svg>
-                    {/* Source pill with icon */}
                     <div className="absolute left-0 bottom-2 inline-flex items-center gap-2 bg-gray-100 border border-gray-300 rounded-full px-3 py-1 text-xs text-gray-700">
                       {uploadSource === 'gmail' ? <Inbox className="h-4 w-4" /> : <UploadCloud className="h-4 w-4" />}
                       <span>{uploadSource === 'gmail' ? 'Gmail' : 'Device'}</span>
                     </div>
-                    {/* Department pill with icon */}
                     <div className="absolute right-0 top-0 inline-flex items-center gap-2 bg-gray-100 border border-gray-300 rounded-full px-3 py-1 text-xs text-gray-700">
                       {getDepartmentIcon(result.department)}
                       <span>{result.department || 'Unknown'}</span>
                     </div>
-                    {/* Moving document along the path using motion-path */}
                     <div className="absolute left-0 top-0 h-8 w-6 bg-yellow-300 rounded-sm shadow [offset-path:path('M20,76_C120,10_200,10_300,20')] [offset-rotate:0deg] [animation:sendDocPath_1.2s_ease-in-out_forwards]" />
                   </div>
                 )}
               </>
             ) : null}
           </form>
-
         </div>
       </div>
     </section>
@@ -318,7 +349,6 @@ const HeroSection = () => {
     </>
   );
 };
-
 //=================================================================
 // 3. PARENT COMPONENT TO RENDER BOTH
 //=================================================================
