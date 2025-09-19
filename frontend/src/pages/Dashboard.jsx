@@ -1,3 +1,5 @@
+// frontend/src/pages/Dashboard.jsx
+
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/hooks/use-auth";
@@ -124,7 +126,7 @@ const sortDocumentsByPriority = (docs) => {
     };
 
     const handleUploadClick = () => {
-        navigate('/get-started');
+        navigate('/', { state: { openUpload: true } });
     };
 
     const UploadMenu = ({ onUploadClick }) => (
@@ -138,7 +140,7 @@ const sortDocumentsByPriority = (docs) => {
                 <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onUploadClick(); }}>
                     <ImageIcon className="h-4 w-4 mr-2" /> Upload from device
                 </DropdownMenuItem>
-                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); navigate('/get-started'); }}>
+                <DropdownMenuItem onSelect={(e) => { e.preventDefault(); onUploadClick(); }}>
                     <InboxIcon className="h-4 w-4 mr-2" /> Import from Gmail
                 </DropdownMenuItem>
             </DropdownMenuContent>

@@ -1,30 +1,27 @@
+// frontend/src/components/HeroSection.jsx
+
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Paperclip, Send, Inbox, Image as ImageIcon, UploadCloud, Users, Cpu, Scale, Cog, Banknote } from "lucide-react"; // Icons for sources and departments
+import { User, Paperclip, Send, Inbox, Image as ImageIcon, UploadCloud, Users, Cpu, Scale, Cog, Banknote } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth"; 
-import { Link, useNavigate } from "react-router-dom";
-import { useState, useRef } from "react";
+import { Link, useNavigate, useLocation } from "react-router-dom";
+import { useState, useRef, useEffect } from "react";
 import { apiService, fileToBase64 } from "@/lib/api";
 
-//=================================================================
-// 1. HEADER COMPONENT (MODIFIED)
-//=================================================================
+// ... Header component remains the same ...
 const Header = () => {
   const { user, logout } = useAuth();
 
   return (
-    // The header is positioned to float over the hero section
     <header className="absolute top-0 left-0 right-0 z-30 py-4 px-6 md:px-10">
       <div className="container mx-auto flex justify-between items-center">
         
-        {/* Logo: Simplified to match the screenshot's style */}
         <Link to="/" className="text-2xl font-bold text-gray-800">
           AI Docs Manager
         </Link>
 
-        {/* Navigation: Using minimal links as requested */}
         <nav className="hidden md:flex items-center space-x-8">
           <Link to="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
             Dashboard
@@ -34,10 +31,8 @@ const Header = () => {
           </Link>
         </nav>
 
-        {/* Auth Button: Replaces "Start for Free" with your Login/Logout logic */}
         <div>
           {user ? (
-            // Button shown when the user IS logged in
             <Button
               className="bg-gray-800 text-white hover:bg-gray-700 rounded-lg shadow-md px-5 py-2 flex items-center"
               onClick={logout}
@@ -46,7 +41,6 @@ const Header = () => {
               Logout
             </Button>
           ) : (
-            // Button shown when the user IS NOT logged in
             <Button
               asChild
               className="bg-gray-800 text-white hover:bg-gray-700 rounded-lg shadow-md px-5 py-2"
@@ -65,11 +59,9 @@ const Header = () => {
 };
 
 
-//=================================================================
-// 2. HERO SECTION COMPONENT (MODIFIED TO SAVE TO SUPABASE)
-//=================================================================
 const HeroSection = () => {
   const { user } = useAuth();
+  const location = useLocation();
   const navigate = useNavigate();
   const [selectedFile, setSelectedFile] = useState(null);
   const [promptText, setPromptText] = useState("");
@@ -79,11 +71,21 @@ const HeroSection = () => {
   const [result, setResult] = useState(null);
   const [displayedSummary, setDisplayedSummary] = useState("");
   const [shrinkHero, setShrinkHero] = useState(false);
-  const [uploadSource, setUploadSource] = useState(null); // 'device' | 'gmail'
+  const [uploadSource, setUploadSource] = useState(null);
   const [showSendAnim, setShowSendAnim] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
   const fileInputRef = useRef(null);
+  const uploadTriggerRef = useRef(null); // Ref for the dropdown trigger
 
+  useEffect(() => {
+    if (location.state?.openUpload) {
+      uploadTriggerRef.current?.click();
+      // Clear the state to prevent re-opening on refresh
+      navigate('.', { state: {}, replace: true });
+    }
+  }, [location.state, navigate]);
+  
+  // ... (rest of the functions: getDepartmentIcon, sanitizeSummary, etc. remain the same)
   const getDepartmentIcon = (dept) => {
     const name = String(dept || '').toLowerCase();
     if (name.includes('hr')) return <Users className="h-4 w-4" />;
@@ -140,18 +142,15 @@ const HeroSection = () => {
       const response = await apiService.analyzeDocument(base64, selectedFile.name, promptText.trim() || undefined);
       const cleanSummary = sanitizeSummary(response?.summary);
       const detectedDepartment = response?.department || "Unknown";
+      const detectedPriority = response?.priority || "Medium";
+      const actionRequired = response?.action_required || "Review required";
       
-      // =================================================================
-      // START: ADDED LOGIC TO UPLOAD FILE AND SAVE TO DATABASE
-      // =================================================================
       setProgress(70);
       setMessage("Saving document...");
 
-      // 1. Dynamically import Supabase client and config
       const { supabase } = await import("@/integrations/supabase/client");
       const { STORAGE_BUCKET } = await import("@/lib/storage");
 
-      // 2. Define a unique path and upload the file to Supabase Storage
       const path = `${user.id}/${Date.now()}-${selectedFile.name}`;
       const { error: storageError } = await supabase.storage
         .from(STORAGE_BUCKET)
@@ -161,7 +160,6 @@ const HeroSection = () => {
         throw new Error(`Storage Error: ${storageError.message}`);
       }
       
-      // 3. Insert metadata and AI results into the 'documents' table
       const { error: dbError } = await supabase.from("documents").insert({
         user_id: user.id,
         department: detectedDepartment,
@@ -170,16 +168,15 @@ const HeroSection = () => {
         mime_type: selectedFile.type || null,
         size_bytes: selectedFile.size ?? null,
         ai_summary: cleanSummary,
+        priority: detectedPriority,
+        action_required: actionRequired,
         created_at: new Date().toISOString()
       });
 
       if (dbError) {
         throw new Error(`Database Error: ${dbError.message}`);
       }
-      // =================================================================
-      // END: ADDED LOGIC
-      // =================================================================
-
+      
       setProgress(100);
       const cleaned = { ...response, summary: cleanSummary, department: detectedDepartment };
       setResult(cleaned);
@@ -247,7 +244,6 @@ const HeroSection = () => {
     }
   };
 
-  // ... (the rest of the return statement and JSX is exactly the same as your original)
   return (
     <>
     <section
@@ -267,7 +263,7 @@ const HeroSection = () => {
           <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto pt-4">
             <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-300 shadow-lg p-2">
               <DropdownMenu>
-                <DropdownMenuTrigger asChild>
+                <DropdownMenuTrigger asChild ref={uploadTriggerRef}>
                   <button type="button" className="shrink-0 inline-flex items-center justify-center h-10 w-10 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
                     <Paperclip className="h-5 w-5" />
                   </button>
@@ -281,7 +277,7 @@ const HeroSection = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".pdf,image/*" />
+              <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".pdf,image/*,.txt" />
               <Input
                 type="text"
                 value={promptText}
@@ -349,9 +345,7 @@ const HeroSection = () => {
     </>
   );
 };
-//=================================================================
-// 3. PARENT COMPONENT TO RENDER BOTH
-//=================================================================
+
 const HomePage = () => {
   return (
     <>

@@ -21,7 +21,6 @@ const GetStarted = () => {
       setShowAuthDialog(true);
       return;
     }
-    // Create a hidden file input
     const input = document.createElement('input');
     input.type = 'file';
     input.multiple = true;
@@ -39,20 +38,18 @@ const GetStarted = () => {
         const { STORAGE_BUCKET } = await import("@/lib/storage");
         
         for (const f of selectedFiles) {
-          // Convert file to base64 for AI analysis
           const fileData = await fileToBase64(f);
           
-          // Analyze document with AI to get summary and department
           let aiSummary = "";
           let detectedDepartment = department || "Unknown";
-          let detectedPriority = "Medium"; // Default priority
-          let actionRequired = "Review required"; // Default action
+          let detectedPriority = "Medium";
+          let actionRequired = "Review required";
           
           try {
             const analysis = await apiService.analyzeDocument(fileData, f.name);
             aiSummary = analysis.summary || "";
             detectedDepartment = analysis.department || department || "Unknown";
-            detectedPriority = analysis.priority || "Medium"; // Get priority from API
+            detectedPriority = analysis.priority || "Medium";
             actionRequired = analysis.action_required || "Review required";
           } catch (aiError) {
             console.warn("AI analysis failed, using fallback:", aiError);
@@ -63,7 +60,6 @@ const GetStarted = () => {
           const { error } = await supabase.storage.from(STORAGE_BUCKET).upload(path, f, { upsert: false });
           if (error) throw error;
           
-          // Store metadata in Supabase table with AI analysis
           const { error: dbError } = await supabase.from("documents").insert({
             user_id: user.id,
             department: detectedDepartment,
@@ -72,7 +68,7 @@ const GetStarted = () => {
             mime_type: f.type || null,
             size_bytes: f.size ?? null,
             ai_summary: aiSummary,
-            priority: detectedPriority, // <-- ADDED
+            priority: detectedPriority,
             action_required: actionRequired,
             created_at: new Date().toISOString()
           });
@@ -98,16 +94,13 @@ const GetStarted = () => {
         return;
       }
 
-      // 1) Get OAuth URL
       const { auth_url, state } = await apiService.getGmailAuthUrl(user.id);
 
-      // 2) Open popup for Google OAuth
       const w = 600, h = 700;
       const left = window.screenX + (window.outerWidth - w) / 2;
       const top = window.screenY + (window.outerHeight - h) / 2;
       const popup = window.open(auth_url, "gmail_oauth", `width=${w},height=${h},left=${left},top=${top}`);
 
-      // 3) Poll until popup is closed (after callback closes it)
       await new Promise((resolve, reject) => {
         const timer = setInterval(async () => {
           if (!popup || popup.closed) {
@@ -115,10 +108,9 @@ const GetStarted = () => {
             resolve();
           }
         }, 700);
-        setTimeout(() => { try { clearInterval(timer); } catch {} resolve(); }, 120000); // safety timeout
+        setTimeout(() => { try { clearInterval(timer); } catch {} resolve(); }, 120000);
       });
 
-      // 4) Import attachments with the OAuth state - focus on unread messages
       const importRes = await apiService.importFromGmail(state, {
         query: 'is:unread has:attachment newer_than:30d',
         maxResults: 50
@@ -148,7 +140,6 @@ const GetStarted = () => {
           </p>
         </CardHeader>
         <CardContent className="px-8 pb-8 flex-1 flex flex-col items-center justify-center text-center gap-6 min-h-[300px]">
-          {/* Main Icon */}
           <div className="w-30 h-30 rounded-full bg-gradient-to-br from-blue-100 to-purple-100 flex items-center justify-center">
             <UploadCloud className="w-15 h-20 text-blue-500" strokeWidth={2.5} />
           </div>

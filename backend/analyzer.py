@@ -131,6 +131,11 @@ def generate_universal_caption(file_data: str, filename: str, custom_prompt: str
             response = model.generate_content([prompt, pdf_text])
             return process_response(response)
 
+        elif main_type == 'text':
+            text_data = base64.b64decode(file_data.split(',')[1]).decode('utf-8')
+            response = model.generate_content([prompt, text_data])
+            return process_response(response)
+
         else:
             return {"error": f"Unsupported file type '{mime_type}'.", "summary": "", "department": "", "priority": "Low", "action_required": "N/A"}
 
