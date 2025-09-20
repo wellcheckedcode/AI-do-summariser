@@ -37,6 +37,18 @@
     animation: logo-spin infinite 20s linear;
   }
 }
+@keyframes sendDocPath {
+  0% { offset-distance: 0%; opacity: 1; }
+  85% { offset-distance: 100%; opacity: 1; }
+  90% { opacity: 0; }
+  100% { offset-distance: 0%; opacity: 0; }
+}
+
+/* --- YOU CAN REMOVE THIS KEYFRAME --- */
+@keyframes running-progress {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
 
 .card {
   padding: 2em;

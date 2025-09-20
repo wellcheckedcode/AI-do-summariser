@@ -1,27 +1,25 @@
-// frontend/src/components/HeroSection.jsx
-
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { User, Paperclip, Send, Inbox, Image as ImageIcon, UploadCloud, Users, Cpu, Scale, Cog, Banknote } from "lucide-react";
+import { User, Paperclip, Send, Inbox, Image as ImageIcon, UploadCloud, Users, Cpu, Scale, Cog, Banknote, Loader2 } from "lucide-react"; // Added Loader2
 import { useAuth } from "@/hooks/use-auth"; 
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useState, useRef, useEffect } from "react";
 import { apiService, fileToBase64 } from "@/lib/api";
 
-// ... Header component remains the same ...
+//=================================================================
+// HEADER COMPONENT (No changes)
+//=================================================================
 const Header = () => {
   const { user, logout } = useAuth();
 
   return (
     <header className="absolute top-0 left-0 right-0 z-30 py-4 px-6 md:px-10">
       <div className="container mx-auto flex justify-between items-center">
-        
         <Link to="/" className="text-2xl font-bold text-gray-800">
           AI Docs Manager
         </Link>
-
         <nav className="hidden md:flex items-center space-x-8">
           <Link to="/dashboard" className="text-gray-600 hover:text-gray-900 transition-colors">
             Dashboard
@@ -30,7 +28,6 @@ const Header = () => {
             Documents
           </Link>
         </nav>
-
         <div>
           {user ? (
             <Button
@@ -52,21 +49,23 @@ const Header = () => {
             </Button>
           )}
         </div>
-
       </div>
     </header>
   );
 };
 
 
+//=================================================================
+// HERO SECTION COMPONENT (UPDATED)
+//=================================================================
 const HeroSection = () => {
   const { user } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
+  const location = useLocation();
+
   const [selectedFile, setSelectedFile] = useState(null);
   const [promptText, setPromptText] = useState("");
   const [isUploading, setIsUploading] = useState(false);
-  const [progress, setProgress] = useState(0);
   const [message, setMessage] = useState("");
   const [result, setResult] = useState(null);
   const [displayedSummary, setDisplayedSummary] = useState("");
@@ -74,48 +73,47 @@ const HeroSection = () => {
   const [uploadSource, setUploadSource] = useState(null);
   const [showSendAnim, setShowSendAnim] = useState(false);
   const [showAuthDialog, setShowAuthDialog] = useState(false);
+  const [gmailImporting, setGmailImporting] = useState(false);
+  const [isUploadMenuOpen, setIsUploadMenuOpen] = useState(false);
   const fileInputRef = useRef(null);
-  const uploadTriggerRef = useRef(null); // Ref for the dropdown trigger
 
   useEffect(() => {
-    if (location.state?.openUpload) {
-      uploadTriggerRef.current?.click();
-      // Clear the state to prevent re-opening on refresh
-      navigate('.', { state: {}, replace: true });
+    if (location.state?.openUploadMenu) {
+      setIsUploadMenuOpen(true);
+      navigate(location.pathname, { replace: true, state: {} });
     }
   }, [location.state, navigate]);
-  
-  // ... (rest of the functions: getDepartmentIcon, sanitizeSummary, etc. remain the same)
-  const getDepartmentIcon = (dept) => {
-    const name = String(dept || '').toLowerCase();
-    if (name.includes('hr')) return <Users className="h-4 w-4" />;
-    if (name.includes('it')) return <Cpu className="h-4 w-4" />;
-    if (name.includes('finance')) return <Banknote className="h-4 w-4" />;
-    if (name.includes('operation')) return <Cog className="h-4 w-4" />;
-    if (name.includes('legal')) return <Scale className="h-4 w-4" />;
-    return <Users className="h-4 w-4" />;
-  };
 
-  const sanitizeSummary = (raw) => {
-    if (!raw) return "";
-    let text = String(raw).trim();
-    text = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
-    try {
-      const parsed = JSON.parse(text);
-      if (parsed && typeof parsed === "object") {
-        if (typeof parsed.summary === "string") return parsed.summary.trim();
-        if (Array.isArray(parsed)) {
-          const found = parsed.find((x) => x && typeof x.summary === "string");
-          if (found) return String(found.summary).trim();
+    const getDepartmentIcon = (dept) => {
+        const name = String(dept || '').toLowerCase();
+        if (name.includes('hr')) return <Users className="h-4 w-4" />;
+        if (name.includes('it')) return <Cpu className="h-4 w-4" />;
+        if (name.includes('finance')) return <Banknote className="h-4 w-4" />;
+        if (name.includes('operation')) return <Cog className="h-4 w-4" />;
+        if (name.includes('legal')) return <Scale className="h-4 w-4" />;
+        return <Users className="h-4 w-4" />;
+    };
+
+    const sanitizeSummary = (raw) => {
+        if (!raw) return "";
+        let text = String(raw).trim();
+        text = text.replace(/^```(?:json)?/i, "").replace(/```$/i, "").trim();
+        try {
+        const parsed = JSON.parse(text);
+        if (parsed && typeof parsed === "object") {
+            if (typeof parsed.summary === "string") return parsed.summary.trim();
+            if (Array.isArray(parsed)) {
+            const found = parsed.find((x) => x && typeof x.summary === "string");
+            if (found) return String(found.summary).trim();
+            }
+            const maybe = Object.values(parsed).find((v) => typeof v === "string");
+            if (maybe) return String(maybe).trim();
         }
-        const maybe = Object.values(parsed).find((v) => typeof v === "string");
-        if (maybe) return String(maybe).trim();
-      }
-    } catch {}
-    text = text.replace(/\b(summary|department)\s*[:=]/gi, "");
-    text = text.replace(/[{}\[\]"]/g, "").trim();
-    return text;
-  };
+        } catch {}
+        text = text.replace(/\b(summary|department)\s*[:=]/gi, "");
+        text = text.replace(/[{}\[\]"]/g, "").trim();
+        return text;
+    };
 
   const handleFileChange = (e) => {
     const file = e.target.files && e.target.files[0];
@@ -134,31 +132,22 @@ const HeroSection = () => {
     }
     try {
       setIsUploading(true);
-      setProgress(10);
       setMessage("Analyzing document...");
       const base64 = await fileToBase64(selectedFile);
       
-      setProgress(40);
       const response = await apiService.analyzeDocument(base64, selectedFile.name, promptText.trim() || undefined);
       const cleanSummary = sanitizeSummary(response?.summary);
       const detectedDepartment = response?.department || "Unknown";
-      const detectedPriority = response?.priority || "Medium";
-      const actionRequired = response?.action_required || "Review required";
       
-      setProgress(70);
       setMessage("Saving document...");
-
       const { supabase } = await import("@/integrations/supabase/client");
       const { STORAGE_BUCKET } = await import("@/lib/storage");
-
       const path = `${user.id}/${Date.now()}-${selectedFile.name}`;
       const { error: storageError } = await supabase.storage
         .from(STORAGE_BUCKET)
         .upload(path, selectedFile);
 
-      if (storageError) {
-        throw new Error(`Storage Error: ${storageError.message}`);
-      }
+      if (storageError) throw new Error(`Storage Error: ${storageError.message}`);
       
       const { error: dbError } = await supabase.from("documents").insert({
         user_id: user.id,
@@ -168,16 +157,11 @@ const HeroSection = () => {
         mime_type: selectedFile.type || null,
         size_bytes: selectedFile.size ?? null,
         ai_summary: cleanSummary,
-        priority: detectedPriority,
-        action_required: actionRequired,
         created_at: new Date().toISOString()
       });
 
-      if (dbError) {
-        throw new Error(`Database Error: ${dbError.message}`);
-      }
-      
-      setProgress(100);
+      if (dbError) throw new Error(`Database Error: ${dbError.message}`);
+     
       const cleaned = { ...response, summary: cleanSummary, department: detectedDepartment };
       setResult(cleaned);
       setShrinkHero(true);
@@ -188,10 +172,9 @@ const HeroSection = () => {
       const step = () => {
         i += 1;
         setDisplayedSummary(full.slice(0, i));
-        if (i < full.length) {
-          setTimeout(step, 15);
-        }
+        if (i < full.length) setTimeout(step, 15);
       };
+
       if (full.length > 0) {
         setTimeout(() => {
           step();
@@ -208,7 +191,6 @@ const HeroSection = () => {
       setMessage(err?.message || "Upload failed");
     } finally {
       setIsUploading(false);
-      setTimeout(() => setProgress(0), 1000);
     }
   };
 
@@ -220,8 +202,8 @@ const HeroSection = () => {
 
   const handleGmailImport = async () => {
     try {
-      setMessage("");
-      setUploadSource('gmail');
+      setGmailImporting(true);
+      setMessage("Initializing Gmail import...");
       if (!user) { setShowAuthDialog(true); return; }
       const { auth_url, state } = await apiService.getGmailAuthUrl(user.id);
       const w = 600, h = 700;
@@ -237,10 +219,13 @@ const HeroSection = () => {
         }, 700);
         setTimeout(() => { try { clearInterval(timer); } catch {} resolve(); }, 120000);
       });
+      setMessage("Fetching attachments from Gmail...");
       const res = await apiService.importFromGmail(state, { query: 'is:unread has:attachment newer_than:30d', maxResults: 25 });
       setMessage(`Imported ${res?.imported || 0} attachments from Gmail. Check Documents/Dashboard.`);
-    } catch (e)      {
+    } catch (e) {
       setMessage(e?.message || "Gmail import failed.");
+    } finally {
+      setGmailImporting(false);
     }
   };
 
@@ -248,9 +233,7 @@ const HeroSection = () => {
     <>
     <section
       className="relative min-h-screen flex items-center justify-center text-center overflow-hidden"
-      style={{
-        background: 'linear-gradient(120deg, #d4f8e8 0%, #d4e4f8 100%)'
-      }}
+      style={{ background: 'linear-gradient(120deg, #d4f8e8 0%, #d4e4f8 100%)' }}
     >
       <div className="relative z-10 w-full px-4 sm:px-6 lg:px-8">
         <div className={`flex flex-col items-center ${shrinkHero ? 'space-y-3' : 'space-y-6'} max-w-4xl mx-auto ${shrinkHero ? 'pt-16' : 'pt-24'}`}>
@@ -262,8 +245,8 @@ const HeroSection = () => {
           </p>
           <form onSubmit={handleSubmit} className="w-full max-w-2xl mx-auto pt-4">
             <div className="flex items-center gap-2 bg-white rounded-xl border border-gray-300 shadow-lg p-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild ref={uploadTriggerRef}>
+              <DropdownMenu open={isUploadMenuOpen} onOpenChange={setIsUploadMenuOpen}>
+                <DropdownMenuTrigger asChild>
                   <button type="button" className="shrink-0 inline-flex items-center justify-center h-10 w-10 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
                     <Paperclip className="h-5 w-5" />
                   </button>
@@ -277,7 +260,7 @@ const HeroSection = () => {
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
-              <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".pdf,image/*,.txt" />
+              <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileChange} accept=".pdf,image/*" />
               <Input
                 type="text"
                 value={promptText}
@@ -285,20 +268,21 @@ const HeroSection = () => {
                 placeholder="Add an optional instruction for analysis..."
                 className="border-0 focus-visible:ring-0 text-base"
               />
-              <Button type="submit" disabled={isUploading} className="shrink-0 bg-gray-800 text-white hover:bg-gray-700 rounded-lg px-4 py-2">
+              <Button type="submit" disabled={isUploading || gmailImporting} className="shrink-0 bg-gray-800 text-white hover:bg-gray-700 rounded-lg px-4 py-2">
                 <Send className="h-4 w-4" />
               </Button>
             </div>
-            {isUploading || progress > 0 ? (
-              <div className="mt-3">
-                <div className="text-sm text-gray-600">{message}</div>
-                <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden mt-1">
-                  <div className="h-2 bg-gray-800 transition-all" style={{ width: `${progress}%` }} />
-                </div>
+
+            {/* --- THIS IS THE MODIFIED LOADING INDICATOR --- */}
+            {(isUploading || gmailImporting) ? (
+              <div className="mt-4 flex flex-col items-center justify-center gap-2 text-gray-800">
+                <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                <p className="text-sm text-muted-foreground animate-pulse">{message || 'Processing your request...'}</p>
               </div>
             ) : (
-              message ? <div className="mt-3 text-sm text-gray-600">{message}</div> : null
+              message && !result ? <div className="mt-3 text-sm text-gray-600">{message}</div> : null
             )}
+            
             {result ? (
               <>
                 <div className="mt-4 text-left bg-white/70 border border-white/80 rounded-lg p-4">
@@ -319,7 +303,7 @@ const HeroSection = () => {
                       {getDepartmentIcon(result.department)}
                       <span>{result.department || 'Unknown'}</span>
                     </div>
-                    <div className="absolute left-0 top-0 h-8 w-6 bg-yellow-300 rounded-sm shadow [offset-path:path('M20,76_C120,10_200,10_300,20')] [offset-rotate:0deg] [animation:sendDocPath_1.2s_ease-in-out_forwards]" />
+                    <div className="absolute left-0 top-0 h-8 w-6 bg-yellow-300 rounded-sm shadow [offset-path:path('M20,76_C120,10_200,10_300,20')] [offset-rotate:0deg] [animation:sendDocPath_1.2s_ease-in-out_infinite]" />
                   </div>
                 )}
               </>
@@ -346,6 +330,9 @@ const HeroSection = () => {
   );
 };
 
+//=================================================================
+// 3. PARENT COMPONENT TO RENDER BOTH
+//=================================================================
 const HomePage = () => {
   return (
     <>
